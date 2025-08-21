@@ -3,8 +3,6 @@
 #include <string.h>
 
 #ifdef _WIN32
-    //TODO FOR WINDOWS
-
     static const char* input_format = "dshow";
     static const char* webcam_url = "video=Integrated Camera"; 
 #elif __linux__
@@ -25,17 +23,8 @@
 #define WIDTH 1280  //1920
 #define HEIGHT 720  //1080
 
-void process_frame(uint8_t *data, int width, int height, int linesize){
+void flip_frame(uint8_t *data, int width, int height, int linesize){
     int x, y;
-    for(y = 0; y < height; y++){
-        uint8_t *row = data + y * linesize;
-        for(x = 0; x< width; x++){
-            row[x*3+0] = 255 - row[x*3+0]; //RED
-            row[x*3+1] = 255 - row[x*3+1]; //GREEN
-            row[x*3+2] = 255 - row[x*3+2]; //BLUE
-        }
-    }
-
     for(y = 0; y < height; y++){
         uint8_t *row1 = data + y * linesize;
         uint8_t *row2 = data + (height - y - 1) * linesize;
@@ -43,6 +32,18 @@ void process_frame(uint8_t *data, int width, int height, int linesize){
             uint8_t tmp = row1[x];
             row1[x] = row2[x];
             row2[x] = tmp;
+        }
+    }
+}
+
+void change_frame_colours(uint8_t *data, int width, int height, int linesize){
+    int x, y;
+    for(y = 0; y < height; y++){
+        uint8_t *row = data + y * linesize;
+        for(x = 0; x< width; x++){
+            row[x*3+0] = 255 - row[x*3+0]; //RED
+            row[x*3+1] = 255 - row[x*3+1]; //GREEN
+            row[x*3+2] = 255 - row[x*3+2]; //BLUE
         }
     }
 }
@@ -153,7 +154,7 @@ int main(){
         return -1;
     }
 
-    SDL_Window *window = SDL_CreateWindow("Video Stream",
+    SDL_Window *window = SDL_CreateWindow("Harman Video Stream App",
                 SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                 WIDTH, HEIGHT, SDL_WINDOW_SHOWN);
 
@@ -178,7 +179,9 @@ int main(){
                             frame->linesize, 0, dec_ctx->height,
                             rgb_frame->data, rgb_frame->linesize);
                     
-                    process_frame(rgb_frame->data[0], WIDTH, HEIGHT, rgb_frame->linesize[0]);
+                    flip_frame(rgb_frame->data[0], WIDTH, HEIGHT, rgb_frame->linesize[0]);
+                    
+                    change_frame_colours(rgb_frame->data[0], WIDTH, HEIGHT, rgb_frame->linesize[0]);
 
                     //UPDATE TEXTURE AND RENDER FRAMES
 
@@ -200,16 +203,6 @@ int main(){
                             yuv_frame->data, yuv_frame->linesize);
 
                     yuv_frame->pts++;
-
-                    /* // FOR WRITING H264 OUTPUT ON TERMINAL
-                    if(avcodec_send_frame(enc_ctx, yuv_frame) == 0){
-                        AVPacket pkt = {0};
-                        av_init_packet(&pkt);
-                        while(avcodec_receive_packet(enc_ctx, &pkt) == 0){
-                            fwrite(pkt.data, 1, pkt.size, stdout);
-                            av_packet_unref(&pkt);
-                        }
-                    }*/
 
                     if (avcodec_send_frame(enc_ctx, yuv_frame) == 0) {
                         av_init_packet(enc_packet);

@@ -1,0 +1,1 @@
+/usr/bin/cc    CMakeFiles/harman_video_app.dir/src/main.c.o  -o harman_video_app -lavcodec -lavformat -lavutil -lswscale -lavdevice -lSDL2 

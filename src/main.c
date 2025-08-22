@@ -7,11 +7,13 @@
 #include <libswscale/swscale.h>
 #include <libavutil/opt.h>
 #include <libavdevice/avdevice.h>
+
+#define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
 
 #ifdef _WIN32
     static const char* input_format = "dshow";
-    static const char* webcam_url = "video=Integrated Camera"; 
+    static const char* webcam_url = "video=FHD Camera"; 
 #elif __linux__
     static const char* input_format = "v4l2"; 
     static const char* webcam_url = "/dev/video0"; 
@@ -49,10 +51,14 @@ void change_frame_colours(uint8_t *data, int width, int height, int linesize){
 
 int main(){
     avdevice_register_all();
-    avcodec_register_all();
+    
+    #ifdef __linux__
+        avcodec_register_all();
+    #endif
 
     AVFormatContext *fmt_ctx = NULL;
-    AVInputFormat *input_fmt = av_find_input_format(input_format);
+    const AVInputFormat *input_fmt = av_find_input_format(input_format);
+
     if(!input_fmt){
         printf("Invalid input format...\n");
         return -1;
@@ -204,7 +210,8 @@ int main(){
                     yuv_frame->pts++;
 
                     if (avcodec_send_frame(enc_ctx, yuv_frame) == 0) {
-                        av_init_packet(enc_packet);
+                        //av_init_packet(enc_packet);
+                        enc_packet = av_packet_alloc();
                         enc_packet->data = NULL;
                         enc_packet->size = 0;
 
@@ -223,11 +230,7 @@ int main(){
     //CLEANUP
 
     exit_label:
-    avcodec_send_frame(enc_ctx, NULL);
-    while (avcodec_receive_packet(enc_ctx, enc_packet) == 0) {
-        fwrite(enc_packet->data, 1, enc_packet->size, outfile);
-        av_packet_unref(enc_packet);
-    }
+    av_packet_free(&enc_packet);
 
     fclose(outfile);
 

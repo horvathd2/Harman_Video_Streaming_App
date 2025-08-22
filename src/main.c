@@ -1,19 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <libavformat/avformat.h>
+#include <libavcodec/avcodec.h>
+#include <libavutil/imgutils.h>
+#include <libswscale/swscale.h>
+#include <libavutil/opt.h>
+#include <libavdevice/avdevice.h>
+#include <SDL2/SDL.h>
 
 #ifdef _WIN32
     static const char* input_format = "dshow";
     static const char* webcam_url = "video=Integrated Camera"; 
 #elif __linux__
-    #include <libavformat/avformat.h>
-    #include <libavcodec/avcodec.h>
-    #include <libavutil/imgutils.h>
-    #include <libswscale/swscale.h>
-    #include <libavutil/opt.h>
-    #include <libavdevice/avdevice.h>
-    #include <SDL2/SDL.h>
-
     static const char* input_format = "v4l2"; 
     static const char* webcam_url = "/dev/video0"; 
 #else

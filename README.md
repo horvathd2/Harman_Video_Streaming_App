@@ -17,9 +17,7 @@ sudo apt install ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-
 ### Windows installation:
 
 Download the precompiled FFMPEG builds\
-Extract the zip\
-Copy the include folder from the FFMPEG folder into your project\
-Copy the .lib files from the lib forlder\
+Extract the zip in a folder named *ffmpeg* in your C: drive\
 Copy the bin/ffmpeg.dll somewhere in your PATH alongside the executable
 
 Or use:
@@ -35,7 +33,7 @@ Or use:
 ### Windows installation:
 
 Download the SDL2 development libraries (MinGW version)\
-Extract the zip\
+Extract the zip in folder named *SDL2* in your C: drive\
 Add the library folder to PATH\
 Place SDL2.dll alongside your executable
 
